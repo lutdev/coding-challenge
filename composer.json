@@ -55,6 +55,9 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "tests": [
+            "phpunit"
         ]
     },
     "conflict": {
@@ -65,5 +68,9 @@
             "allow-contrib": false,
             "require": "6.0.*"
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9",
+        "symfony/phpunit-bridge": "^6.0"
     }
 }
