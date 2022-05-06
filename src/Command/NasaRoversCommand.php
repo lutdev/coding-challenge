@@ -107,7 +107,7 @@ class NasaRoversCommand extends Command
         }
 
         foreach ($rovers as $roverInformation) {
-            $output->write('Moving rover...');
+            $output->write("\nMoving rover...");
             $rover = $this->nasaRoverService->process($roverInformation);
 
             try {
