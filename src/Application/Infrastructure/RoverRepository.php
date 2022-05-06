@@ -9,7 +9,7 @@ use App\Domain\Entity\Rover;
 
 final class RoverRepository implements RoverRepositoryInterface
 {
-    public function turnLeft(Rover $rover): void
+    public function turnLeft(Rover $rover): Rover
     {
         match ($rover->getDirection()) {
             Direction::North => $rover->setDirection(Direction::West),
@@ -17,9 +17,11 @@ final class RoverRepository implements RoverRepositoryInterface
             Direction::West => $rover->setDirection(Direction::South),
             Direction::East => $rover->setDirection(Direction::North),
         };
+
+        return $rover;
     }
 
-    public function turnRight(Rover $rover): void
+    public function turnRight(Rover $rover): Rover
     {
         match ($rover->getDirection()) {
             Direction::North => $rover->setDirection(Direction::East),
@@ -27,9 +29,11 @@ final class RoverRepository implements RoverRepositoryInterface
             Direction::West => $rover->setDirection(Direction::North),
             Direction::East => $rover->setDirection(Direction::South),
         };
+
+        return $rover;
     }
 
-    public function move(Rover $rover): void
+    public function move(Rover $rover): Rover
     {
         match ($rover->getDirection()) {
             Direction::North => $rover->setCoordinateY($rover->getCoordinateY() + 1),
@@ -37,5 +41,7 @@ final class RoverRepository implements RoverRepositoryInterface
             Direction::West => $rover->setCoordinateX($rover->getCoordinateX() - 1),
             Direction::East => $rover->setCoordinateX($rover->getCoordinateX() + 1),
         };
+
+        return $rover;
     }
 }

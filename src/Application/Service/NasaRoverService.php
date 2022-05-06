@@ -28,7 +28,7 @@ class NasaRoverService
         );
 
         foreach(\str_split($roverInformation->getActions()) as $action) {
-            match($action) {
+            $rover = match($action) {
                 'M' => $this->roverRepository->move($rover),
                 'L' => $this->roverRepository->turnLeft($rover),
                 'R' => $this->roverRepository->turnRight($rover),

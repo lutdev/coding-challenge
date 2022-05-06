@@ -7,9 +7,9 @@ use App\Domain\Entity\Rover;
 
 interface RoverRepositoryInterface
 {
-    public function turnLeft(Rover $rover): void;
+    public function turnLeft(Rover $rover): Rover;
 
-    public function turnRight(Rover $rover): void;
+    public function turnRight(Rover $rover): Rover;
 
-    public function move(Rover $rover): void;
+    public function move(Rover $rover): Rover;
 }

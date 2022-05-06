@@ -7,10 +7,10 @@ use App\Application\Assertions\RoverCoordinatesIsValidAssertion;
 use App\Application\Assertions\TopRightCoordinatesIsValidAssertion;
 use App\Application\Enum\Direction;
 use App\Application\Exceptions\InvalidRoverInformationException;
-use App\Application\Repository\RoverRepositoryInterface;
 use App\Application\Service\NasaRoverService;
 use App\Command\NasaRovers\Dto\BorderCoordinatesDto;
 use App\Command\NasaRovers\Dto\RoverInformationDto;
+use Exception;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -29,7 +29,6 @@ class NasaRoversCommand extends Command
     private QuestionHelper $questionHelper;
 
     public function __construct(
-        private RoverRepositoryInterface $roverRepository,
         private TopRightCoordinatesIsValidAssertion $topRightCoordinatesIsValidAssertion,
         private RoverCoordinatesIsValidAssertion $roverCoordinatesIsValidAssertion,
         private NasaRoverService $nasaRoverService,
@@ -56,6 +55,9 @@ class NasaRoversCommand extends Command
         );
     }
 
+    /**
+     * @throws Exception
+     */
     protected function execute(
         InputInterface $input,
         OutputInterface $output
@@ -85,7 +87,7 @@ class NasaRoversCommand extends Command
         $roversInformation = $this->getRoversInformation($input, $output);
 
         try {
-            $rovers = $this->setupRovers($borderCoordinatesDto, $output, $roversInformation);
+            $rovers = $this->setupRovers($borderCoordinatesDto, $roversInformation);
         } catch (InvalidRoverInformationException $exception) {
             $output->write(
                 \sprintf(
@@ -105,7 +107,27 @@ class NasaRoversCommand extends Command
         }
 
         foreach ($rovers as $roverInformation) {
+            $output->write('Moving rover...');
             $rover = $this->nasaRoverService->process($roverInformation);
+
+            try {
+                $this->roverCoordinatesIsValidAssertion->assert(
+                    $borderCoordinatesDto,
+                    $rover->getXCoordinate(),
+                    $rover->getYCoordinate()
+                );
+            } catch (InvalidArgumentException) {
+                $output->writeln([
+                    "\n",
+                    \sprintf(
+                        'Rover left Mars: %d %d %s',
+                        $rover->getXCoordinate(),
+                        $rover->getYCoordinate(),
+                        $rover->getDirection()->toString()
+                    ),
+                    "\n"
+                ]);
+            }
 
             $output->writeln([
                 "\n",
@@ -131,24 +153,6 @@ class NasaRoversCommand extends Command
             if (!is_string($answer) || empty($answer) || 1 !== preg_match('/^[0-9]{1,} [0-9]{1,}$/', $answer)) {
                 throw new \RuntimeException(
                     'Coordinates should be like X Y. For example, 0 0'
-                );
-            }
-
-            return $answer;
-        });
-
-        return $this->questionHelper->ask($input, $output, $question);
-    }
-
-    private function getRoverCoordinates(
-        InputInterface $input,
-        OutputInterface $output,
-    ): string {
-        $question = new Question('Enter start coordinates of the rover (X Y Direction). For example, 1 1 N: ');
-        $question->setValidator(function ($answer) {
-            if (!is_string($answer) || empty($answer) || 1 !== preg_match('/^[0-9]{1,} [0-9]{1,} [NSWE]$/', $answer)) {
-                throw new \RuntimeException(
-                    'Coordinates should be like X Y Direction. For example, 1 1 N'
                 );
             }
 
@@ -187,7 +191,6 @@ class NasaRoversCommand extends Command
      */
     private function setupRovers(
         BorderCoordinatesDto $borderCoordinatesDto,
-        OutputInterface $output,
         array $roversInformation
     ): array {
         /** @var RoverInformationDto[] $rovers */
