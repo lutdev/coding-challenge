@@ -86,6 +86,12 @@ class NasaRoversCommand extends Command
 
         $roversInformation = $this->getRoversInformation($input, $output);
 
+        if (\count($roversInformation) === 0) {
+            $output->write('Rovers are empty');
+
+            return Command::SUCCESS;
+        }
+
         try {
             $rovers = $this->setupRovers($borderCoordinatesDto, $roversInformation);
         } catch (InvalidRoverInformationException $exception) {
@@ -98,12 +104,6 @@ class NasaRoversCommand extends Command
             );
 
             return Command::INVALID;
-        }
-
-        if (\count($rovers) === 0) {
-            $output->write('Rovers are empty');
-
-            return Command::SUCCESS;
         }
 
         foreach ($rovers as $roverInformation) {
@@ -170,15 +170,21 @@ class NasaRoversCommand extends Command
         $question = new Question('Enter rovers information: ');
         $question->setMultiline(true);
 
-        $answer = $this->questionHelper->ask($input, $output, $question);
+        $answer = $this->questionHelper->ask($input, $output, $question) ?? '';
+
+        if ($answer === '') {
+            return [];
+        }
 
         $roversInformation = \explode("\n", $answer);
         $countLines = \count($roversInformation);
 
         if ($countLines%2 !== 0) {
             throw new InvalidArgumentException(
-                'Every rover should have 2 lines: one with coordinates and one with actions. You have %d lines',
-                $countLines
+                \sprintf(
+                    'Every rover should have 2 lines: one with coordinates and one with actions. You have %d lines',
+                    $countLines
+                )
             );
         }
 

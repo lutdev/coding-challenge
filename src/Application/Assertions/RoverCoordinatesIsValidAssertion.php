@@ -8,6 +8,9 @@ use InvalidArgumentException;
 
 class RoverCoordinatesIsValidAssertion
 {
+    /**
+     * @throws InvalidArgumentException
+     */
     public function assert(
         BorderCoordinatesDto $borderCoordinatesDto,
         int $roverXCoordinate,
